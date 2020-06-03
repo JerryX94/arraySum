@@ -61,7 +61,7 @@ void slave_sumsw(struct _swarg *marg) {
                 sizeof(struct _swarg),
                 &get_reply,
                 0, 0, 0);
-    //while(get_reply != 1);
+	//while(get_reply != 1);
 	wait_reply(&get_reply, 1);
 	
 	double coef[sarg.ncoef];
@@ -138,10 +138,10 @@ void slave_sumsw(struct _swarg *marg) {
 	int colid		= my_id % 8;
 	while (divisor <= 8) {
 		if (my_id % divisor == quotient) {
-            REG_PUTR(sum, colid - quotient);
+			REG_PUTR(sum, colid - quotient);
 		}
 		if (my_id % divisor == 0) {
-            REG_GETR(recvval);
+			REG_GETR(recvval);
 			sum += recvval;
 		}
 		divisor  *= 2;
@@ -149,10 +149,10 @@ void slave_sumsw(struct _swarg *marg) {
 	}
 	while (divisor <= NTHREAD) {
 		if (my_id % divisor == quotient) {
-            REG_PUTC(sum, rowid - quotient / 8);
+			REG_PUTC(sum, rowid - quotient / 8);
 		}
 		if (my_id % divisor == 0) {
-            REG_GETC(recvval);
+			REG_GETC(recvval);
 			sum += recvval;
 		}
 		divisor  *= 2;

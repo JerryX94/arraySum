@@ -22,9 +22,9 @@ void sum(long n, double *arr, int ncoef, double *coef, double *result) {
 	
 #ifndef ATHREAD
 	*result = 0;
-    for (i = 0; i < n; i++) {
-        *result += polynomial(arr[i], ncoef, coef);
-    }
+	for (i = 0; i < n; i++) {
+		*result += polynomial(arr[i], ncoef, coef);
+	}
 #else
 	athread_init();
 	struct _swarg arg;
@@ -37,7 +37,7 @@ void sum(long n, double *arr, int ncoef, double *coef, double *result) {
 	arg.result	= tmp;
 	
 	athread_spawn(sumsw, &arg);
-    athread_join();
+	athread_join();
 	
 	*result = 0;
 	for (i = 0; i < NTHREAD; i++) {
@@ -46,7 +46,7 @@ void sum(long n, double *arr, int ncoef, double *coef, double *result) {
  #else
 	arg.result = result;
 	athread_spawn(sumsw, &arg);
-    athread_join();
+	athread_join();
  #endif
 	athread_halt();
 #endif
