@@ -14,6 +14,10 @@
   asm volatile ("putc %0,%1\n"::"r"(var),"r"(dest):"memory")
  #define REG_GETC(var) \
   asm volatile ("getc %0\n":"=r"(var)::"memory")
+ #define REG_SYNR(mask) \
+  asm volatile ("synr %0"::"r"(mask))
+ #define REG_SYNC(mask) \
+  asm volatile ("sync %0"::"r"(mask))
 #endif
 
 __thread_local volatile unsigned long get_reply, put_reply;
@@ -144,6 +148,7 @@ void slave_sumsw(struct _swarg *marg) {
 			REG_GETR(recvval);
 			sum += recvval;
 		}
+		REG_SYNR(0xff);
 		divisor  *= 2;
 		quotient *= 2;
 	}
@@ -155,6 +160,7 @@ void slave_sumsw(struct _swarg *marg) {
 			REG_GETC(recvval);
 			sum += recvval;
 		}
+		REG_SYNC(0xff);
 		divisor  *= 2;
 		quotient *= 2;
 	}
