@@ -1,5 +1,6 @@
-#include <slave.h>
+#include <stdio.h>
 #include "swarg.h"
+#include "dma_macros.h"
 
 #ifdef USE_SIMD
  #include <simd.h>
@@ -20,12 +21,7 @@
   asm volatile ("sync %0"::"r"(mask))
 #endif
 
-__thread_local volatile unsigned long get_reply, put_reply;
 __thread_local volatile int my_id;
-
-void wait_reply(volatile unsigned long *reply, int m) {
-	while(*reply != m) {};
-}
 
 #ifndef USE_SIMD
 double polynomial_s(double x, int ncoef, double *coef) {
@@ -55,27 +51,17 @@ void slave_sumsw(struct _swarg *marg) {
 	long i;
 	struct _swarg sarg;
 	
+	dma_init();
+	
 	// ------------ Get Info ------------ //
 	
 	my_id = athread_get_id(-1);
-	get_reply = 0;
-	athread_get(PE_MODE,
-                marg,
-                &sarg,
-                sizeof(struct _swarg),
-                &get_reply,
-                0, 0, 0);
-	//while(get_reply != 1);
-	wait_reply(&get_reply, 1);
+	pe_get(marg, &sarg, sizeof(struct _swarg));
+	dma_syn();
 	
 	double coef[sarg.ncoef];
-	athread_get(PE_MODE,
-                sarg.coef,
-                coef,
-                sarg.ncoef * sizeof(double),
-                &get_reply,
-                0, 0, 0);
-	wait_reply(&get_reply, 2);
+	pe_get(sarg.coef, coef, sarg.ncoef * sizeof(double));
+	dma_syn();
 	
 	// ---------- Load Balance ---------- //
 	
@@ -89,23 +75,19 @@ void slave_sumsw(struct _swarg *marg) {
 	
 #ifndef USE_SIMD
 	double localbuf[MAXDMA];
+	if (my_id == 0) printf("SIMD    OFF\n");
 #else
 	doublev4 sumv4 = 0;
 	double localbuf[MAXDMA + 4];
+	if (my_id == 0) printf("SIMD    ON\n");
 #endif
 	double sum = 0;
 	long batch = load;
 	while (batch > 0) {
 		if (batch > MAXDMA)
 			batch = MAXDMA;
-		get_reply = 0;
-		athread_get(PE_MODE,
-					sarg.arr + stid,
-					localbuf,
-					batch * sizeof(double),
-					&get_reply,
-					0, 0, 0);
-		wait_reply(&get_reply, 1);
+		pe_get(sarg.arr + stid, localbuf, batch * sizeof(double));
+		dma_syn();
 #ifndef USE_SIMD
 		for (i = 0; i < batch; i++) {
 			sum += polynomial_s(localbuf[i], sarg.ncoef, coef);
@@ -140,6 +122,7 @@ void slave_sumsw(struct _swarg *marg) {
 	int quotient	= 1;
 	int rowid		= my_id / 8;
 	int colid		= my_id % 8;
+	if (my_id == 0) printf("REG_COM ON\n");
 	while (divisor <= 8) {
 		if (my_id % divisor == quotient) {
 			REG_PUTR(sum, colid - quotient);
@@ -168,14 +151,8 @@ void slave_sumsw(struct _swarg *marg) {
 	// --------- Put Result Reg --------- //
 	
 	if (my_id == 0)  {
-		put_reply = 0;
-		athread_put(PE_MODE,
-					&sum,
-					sarg.result,
-					sizeof(double),
-					&put_reply,
-					0, 0);
-		wait_reply(&put_reply, 1);
+		pe_put(sarg.result, &sum, sizeof(double));
+		dma_syn();
 	}
 
 	return;
@@ -183,12 +160,7 @@ void slave_sumsw(struct _swarg *marg) {
 	
 	// -------- Put Result Noreg -------- //
 	
-	put_reply = 0;
-	athread_put(PE_MODE,
-				&sum,
-				sarg.result + my_id,
-				sizeof(double),
-				&put_reply,
-				0, 0);
-	wait_reply(&put_reply, 1);
+	if (my_id == 0) printf("REG_COM OFF\n");
+	pe_put(sarg.result + my_id, &sum, sizeof(double));
+	dma_syn();
 }

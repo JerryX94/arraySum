@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <sys/time.h>
+#include "swlu.h"
 
 #define N 100000000
 #define NCOEF 10
@@ -21,7 +22,9 @@ int main() {
 	unsigned long	tst_rpcc, ted_rpcc;
 	clock_t			tst_time, ted_time;
 	struct timeval	tst_gtod, ted_gtod;
-	
+    
+    swlu_debug_init();
+    
 	arr = (double *)malloc(N * sizeof(double));
 	for (i = 0; i < N; i++) {
 		arr[i] = 1.0;

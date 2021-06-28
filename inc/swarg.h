@@ -1,7 +1,11 @@
 #define NTHREAD 64
 #define MAXDMA	512
-#define USE_SIMD
-//#define REG_COM
+#define ATHREAD
+
+#ifdef ATHREAD
+ #define USE_SIMD
+// #define REG_COM
+#endif
 
 struct _swarg {
 	long	n;

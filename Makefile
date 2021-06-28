@@ -1,20 +1,21 @@
-OBJDIR   = ./build
-OBJECTS  = $(OBJDIR)/main.o $(OBJDIR)/sum.o $(OBJDIR)/slave.o
-INCLUDES = -I ./inc
-LIBS	 = 
-FLAGS	 = -O2
-VPATH    = ./src
+OBJDIR	 = ./build
+OBJECTS	 = $(OBJDIR)/main.o $(OBJDIR)/sum.o $(OBJDIR)/slave.o
+INCLUDES = -I./inc -I/home/export/online3/swmore/opensource/swlu/include/
+LIBS	 = -L/home/export/online3/swmore/opensource/swlu/lib/ -lswlu
+FLAGS	 = -O3
+SFLAGS	 = -O3
+VPATH	 = ./src
 
 all: slave.o sum.o main.o arraySum
 
 arraySum: $(OBJECTS) | dir
-	sw5cc -hybrid -o $(OBJDIR)/arraySum $^ $(LIBS)
+	mpicc -hybrid -o $(OBJDIR)/arraySum $^ $(LIBS)
 main.o: main.c | dir
-	sw5cc -host $(INCLUDES) -c $< -o $(OBJDIR)/main.o
+	mpicc $(FLAGS) $(INCLUDES) -c $< -o $(OBJDIR)/main.o
 sum.o: sum.c | dir
-	sw5cc -host $(INCLUDES) -c -std=gnu99 $< -o $(OBJDIR)/sum.o
+	sw5cc -host $(FLAGS) $(INCLUDES) -c -std=gnu99 $< -o $(OBJDIR)/sum.o
 slave.o: slave.c | dir
-	sw5cc -slave -msimd $(FLAGS) $(INCLUDES) -c -std=gnu99 $< -o $(OBJDIR)/slave.o
+	sw5cc -slave -msimd $(SFLAGS) $(INCLUDES) -c -std=gnu99 $< -o $(OBJDIR)/slave.o
 
 dir:
 	@mkdir -p $(OBJDIR)

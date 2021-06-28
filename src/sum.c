@@ -1,7 +1,7 @@
-#define ATHREAD
+#include <stdio.h>
+#include "swarg.h"
 
 #ifdef ATHREAD
- #include "swarg.h"
  #include <athread.h>
 extern void SLAVE_FUN(sumsw)(struct _swarg *);
 #endif
@@ -21,11 +21,13 @@ void sum(long n, double *arr, int ncoef, double *coef, double *result) {
 	long i;
 	
 #ifndef ATHREAD
+	printf("ATHREAD OFF\n");
 	*result = 0;
 	for (i = 0; i < n; i++) {
 		*result += polynomial(arr[i], ncoef, coef);
 	}
 #else
+	printf("ATHREAD ON\n");
 	athread_init();
 	struct _swarg arg;
 	arg.n		= n;

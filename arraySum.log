@@ -1,0 +1,7 @@
+ATHREAD ON
+SIMD    ON
+REG_COM OFF
+Sum of array is : 10000000000.00
+Time(rpcc) : 39.15 ms
+Time(time) : 40.00 ms
+Time(gtod) : 39.83 ms
